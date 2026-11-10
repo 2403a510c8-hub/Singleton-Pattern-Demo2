@@ -1,0 +1,157 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adapter Design Pattern</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #dbeafe, #e0e7ff);
+            text-align: center;
+            padding: 40px;
+        }
+
+        .container {
+            background: white;
+            max-width: 500px;
+            margin: auto;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #3730a3;
+        }
+
+        input {
+            padding: 12px;
+            width: 80%;
+            margin: 15px;
+            border: 1px solid #aaa;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 12px 25px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: #3730a3;
+        }
+
+        .result {
+            margin-top: 25px;
+            padding: 15px;
+            background: #eef2ff;
+            border-radius: 8px;
+            font-size: 18px;
+            color: #312e81;
+        }
+
+        .info {
+            margin-top: 20px;
+            color: #555;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Adapter Design Pattern</h1>
+        <h3>Temperature Conversion</h3>
+
+        <p>Enter temperature in Fahrenheit:</p>
+
+        <input type="number" id="fahrenheit"
+               placeholder="Enter Fahrenheit">
+
+        <br>
+
+        <button onclick="convertTemperature()">
+            Convert to Celsius
+        </button>
+
+        <div class="result" id="result">
+            Converted temperature will appear here.
+        </div>
+
+        <div class="info">
+            <h3>How Adapter Pattern Works</h3>
+            <p>1. Existing system provides Fahrenheit.</p>
+            <p>2. Adapter converts Fahrenheit into Celsius.</p>
+            <p>3. New system receives Celsius.</p>
+        </div>
+    </div>
+
+    <script>
+        // Existing system
+        class FahrenheitSensor {
+            getTemperature() {
+                return 98.6;
+            }
+        }
+
+        // Target interface
+        class CelsiusSystem {
+            displayTemperature(value) {
+                return value + " °C";
+            }
+        }
+
+        // Adapter class
+        class TemperatureAdapter {
+            constructor(sensor) {
+                this.sensor = sensor;
+            }
+
+            getTemperatureInCelsius() {
+                let fahrenheit = this.sensor.getTemperature();
+                return (fahrenheit - 32) * 5 / 9;
+            }
+        }
+
+        // Conversion function
+        function convertTemperature() {
+            let input = document.getElementById("fahrenheit").value;
+
+            if (input === "") {
+                document.getElementById("result").innerHTML =
+                    "Please enter a temperature.";
+                return;
+            }
+
+            let sensor = new FahrenheitSensor();
+
+            // Adapter connects the two systems
+            let adapter = new TemperatureAdapter(sensor);
+
+            // Use entered Fahrenheit value
+            sensor.getTemperature = function() {
+                return Number(input);
+            };
+
+            let celsius = adapter.getTemperatureInCelsius();
+
+            let system = new CelsiusSystem();
+
+            document.getElementById("result").innerHTML =
+                "Fahrenheit: " + input + " °F<br>" +
+                "Celsius: " + system.displayTemperature(celsius.toFixed(2));
+        }
+    </script>
+
+</body>
+</html>

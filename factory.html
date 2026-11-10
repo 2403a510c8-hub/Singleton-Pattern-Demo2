@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<!-- HTML5 document: Vehicle Rental System using Factory Method -->
+<html lang="en">
+<head>
+  <!-- Character encoding and responsive layout -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vehicle Rental - Factory Method Pattern</title>
+  <style>
+    /* Overall page styling */
+    body { font-family: Arial, sans-serif; background: #f3f6fb; color: #1e293b; margin: 0; padding: 24px; }
+    /* Center the application */
+    .container { max-width: 760px; margin: auto; }
+    /* White content panels */
+    .panel { background: white; padding: 22px; margin: 16px 0; border-radius: 12px; box-shadow: 0 3px 14px #0f172a12; }
+    h1 { color: #1d4ed8; margin-bottom: 8px; }
+    /* Input labels and form controls */
+    label { display: block; font-weight: bold; margin: 14px 0 6px; }
+    input, select { width: 100%; box-sizing: border-box; padding: 11px; border: 1px solid #94a3b8; border-radius: 6px; font-size: 15px; }
+    /* Primary action button */
+    button { margin-top: 18px; padding: 12px 18px; border: 0; border-radius: 7px; background: #2563eb; color: white; font-weight: bold; cursor: pointer; }
+    button:hover { background: #1d4ed8; }
+    /* Success and error feedback */
+    .success { border-left: 4px solid #16a34a; }
+    .error { color: #b91c1c; }
+    /* Rental price reference */
+    table { border-collapse: collapse; width: 100%; }
+    th, td { padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+    th { background: #eff6ff; }
+    .muted { color: #64748b; }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <!-- Application heading -->
+    <h1>🚗 Vehicle Rental System</h1>
+    <p>Factory Method Design Pattern | Car, Bike, and Bus</p>
+
+    <!-- Display demonstration rental rates -->
+    <section class="panel">
+      <h2>Daily Rental Charges</h2>
+      <table>
+        <thead><tr><th>Vehicle</th><th>Price / Day</th></tr></thead>
+        <tbody>
+          <tr><td>Bike</td><td>₹500</td></tr>
+          <tr><td>Car</td><td>₹2,000</td></tr>
+          <tr><td>Bus</td><td>₹5,000</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Customer rental booking form -->
+    <section class="panel">
+      <h2>Book a Vehicle</h2>
+      <form id="rentalForm">
+        <!-- Customer's name -->
+        <label for="customer">Customer Name</label>
+        <input id="customer" type="text" required maxlength="80" placeholder="Enter customer name">
+
+        <!-- Vehicle type determines which concrete factory is used -->
+        <label for="vehicleType">Choose Vehicle</label>
+        <select id="vehicleType" required>
+          <option value="">-- Select Vehicle --</option>
+          <option value="car">Car</option>
+          <option value="bike">Bike</option>
+          <option value="bus">Bus</option>
+        </select>
+
+        <!-- Number of rental days -->
+        <label for="days">Rental Days</label>
+        <input id="days" type="number" min="1" max="365" step="1" value="1" required>
+
+        <!-- Submit the booking without reloading the page -->
+        <button type="submit">Calculate &amp; Book</button>
+      </form>
+      <!-- Error messages appear here -->
+      <p id="error" class="error" role="alert"></p>
+    </section>
+
+    <!-- Booking result is populated by JavaScript -->
+    <section id="result" class="panel success" hidden aria-live="polite"></section>
+
+    <!-- Teaching aid: list the concrete class used -->
+    <p class="muted">Open Developer Tools (F12) → Console to inspect the created vehicle object.</p>
+  </main>
+
+  <script>
+    // ================================================
+    // STEP 1: DEFINE THE VEHICLE PRODUCT HIERARCHY
+    // ================================================
+
+    // Base class: common interface for all vehicles.
+    class Vehicle {
+      // Every concrete vehicle must provide a daily rental rate.
+      getDailyRate() {
+        throw new Error('Subclass must implement getDailyRate()');
+      }
+
+      // Return a user-friendly vehicle type.
+      getType() {
+        throw new Error('Subclass must implement getType()');
+      }
+
+      // Shared calculation logic: rate multiplied by days.
+      calculateRental(days) {
+        return this.getDailyRate() * days;
+      }
+    }
+
+    // Concrete product: Car.
+    class Car extends Vehicle {
+      getDailyRate() { return 2000; } // Car costs ₹2,000 per day.
+      getType() { return 'Car'; }      // Display name.
+    }
+
+    // Concrete product: Bike.
+    class Bike extends Vehicle {
+      getDailyRate() { return 500; }  // Bike costs ₹500 per day.
+      getType() { return 'Bike'; }     // Display name.
+    }
+
+    // Concrete product: Bus.
+    class Bus extends Vehicle {
+      getDailyRate() { return 5000; } // Bus costs ₹5,000 per day.
+      getType() { return 'Bus'; }      // Display name.
+    }
+
+    // ================================================
+    // STEP 2: DEFINE THE FACTORY METHOD CREATOR
+    // ================================================
+
+    // Base creator: declares the Factory Method.
+    class VehicleFactory {
+      createVehicle() {
+        throw new Error('Subclass must implement createVehicle()');
+      }
+    }
+
+    // Concrete creator: builds Car objects.
+    class CarFactory extends VehicleFactory {
+      createVehicle() { return new Car(); }
+    }
+
+    // Concrete creator: builds Bike objects.
+    class BikeFactory extends VehicleFactory {
+      createVehicle() { return new Bike(); }
+    }
+
+    // Concrete creator: builds Bus objects.
+    class BusFactory extends VehicleFactory {
+      createVehicle() { return new Bus(); }
+    }
+
+    // ================================================
+    // STEP 3: CHOOSE A FACTORY BASED ON CUSTOMER INPUT
+    // ================================================
+
+    // This selection function chooses the appropriate creator.
+    // The booking logic does NOT directly call new Car/Bike/Bus.
+    function chooseFactory(type) {
+      switch (type) {
+        case 'car': return new CarFactory();   // Choose Car creator.
+        case 'bike': return new BikeFactory(); // Choose Bike creator.
+        case 'bus': return new BusFactory();   // Choose Bus creator.
+        default: throw new Error('Please select a valid vehicle.');
+      }
+    }
+
+    // Format numbers as Indian currency.
+    function formatRupees(amount) {
+      return new Intl.NumberFormat('en-IN', {
+        style: 'currency', currency: 'INR', maximumFractionDigits: 0
+      }).format(amount);
+    }
+
+    // ================================================
+    // STEP 4: HANDLE THE RENTAL FORM
+    // ================================================
+
+    // Listen for form submission.
+    document.getElementById('rentalForm').addEventListener('submit', function (event) {
+      event.preventDefault(); // Prevent the browser from refreshing.
+
+      // Read form values.
+      const customer = document.getElementById('customer').value.trim();
+      const type = document.getElementById('vehicleType').value;
+      const days = Number(document.getElementById('days').value);
+      const errorBox = document.getElementById('error');
+      const resultBox = document.getElementById('result');
+
+      // Clear previous messages.
+      errorBox.textContent = '';
+      resultBox.hidden = true;
+
+      // Validate the customer name and rental days.
+      if (!customer || !Number.isInteger(days) || days < 1 || days > 365) {
+        errorBox.textContent = 'Enter a name and a valid rental duration (1–365 days).';
+        return; // Stop processing invalid input.
+      }
+
+      try {
+        // Select a concrete factory according to customer choice.
+        const factory = chooseFactory(type);
+
+        // FACTORY METHOD: create the appropriate vehicle object.
+        const vehicle = factory.createVehicle();
+
+        // Calculate total rental cost using the created object.
+        const total = vehicle.calculateRental(days);
+
+        // Log details to help students inspect object creation.
+        console.log('Concrete factory:', factory.constructor.name);
+        console.log('Created vehicle:', vehicle);
+        console.log('Vehicle class:', vehicle.constructor.name);
+
+        // Prepare booking confirmation without inserting user HTML.
+        resultBox.replaceChildren();
+        const heading = document.createElement('h2');
+        heading.textContent = 'Booking Confirmed (Demo)';
+        resultBox.appendChild(heading);
+
+        // Display each booking detail as safe plain text.
+        const details = [
+          ['Customer', customer],
+          ['Vehicle', vehicle.getType()],
+          ['Factory Used', factory.constructor.name],
+          ['Created Object', vehicle.constructor.name],
+          ['Rental Days', String(days)],
+          ['Daily Rate', formatRupees(vehicle.getDailyRate())],
+          ['Total Rental', formatRupees(total)]
+        ];
+        details.forEach(([label, value]) => {
+          const line = document.createElement('p');
+          const bold = document.createElement('strong');
+          bold.textContent = label + ': ';
+          line.append(bold, document.createTextNode(value));
+          resultBox.appendChild(line);
+        });
+
+        resultBox.hidden = false; // Reveal the booking confirmation.
+      } catch (error) {
+        errorBox.textContent = error.message; // Show selection errors.
+      }
+    });
+  </script>
+</body>
+</html>
